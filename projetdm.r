@@ -52,7 +52,7 @@ colnames(global)<-(sport)
 
 
 country_eval<-data.frame(matrix(nrow=k2,ncol=countryncol))
-#country<-as.array(countrylist$Country)
+
 colnames(country_eval)<-(country) 
 
 evaldf<-data.frame(matrix(nrow=countryncol,ncol=globalncol))
@@ -80,7 +80,7 @@ sm2<-sm[cond ,]
 
 
 best<-count(sm2,'Country')  ## count the best contries
-#best2<-count(wn2,'Country')
+
 colnames(best) <- c("country","nbr") ##makes it ready for plot
 bestsort<-best[order(best$nbr,decreasing=TRUE),] ## order it 
 
@@ -91,21 +91,21 @@ ggplot(topbest,aes(x=topbest$country ,y=topbest$nbr ))+ geom_bar(stat="identity"
 
 ind<-as.array(topbest$country) ## get the names of countries
 ind<-as.character(ind)
-#score<-as.array(topbest$nbr)
 
-#score
+
+
 for (j in 1:n) {  ## iterate all countries
  
   
       for(m in 1:m2) {
          
-         if (identical(ind[m],country[j])){#&& score[m]>=3) {## if that country(j) is good in a sport i
+         if (identical(ind[m],country[j])){## if that country(j) is good in a sport i
           
            evaldf[j,i]<-1
            write<-TRUE
           
            for(k in 1:k2){
-             if (is.na(country_eval[k,j]) && write) {  ## find elpty spot
+             if (is.na(country_eval[k,j]) && write) {  ## find empty spot
              write<-FALSE  
              country_eval[k,j]<-sport[i]
              
@@ -179,13 +179,15 @@ itemFrequencyPlot(evalm,topN=10,type="absolute")    ##plot the frequency
 
 ###use apriori algo with rules of min sup=0.12  and min conf 0.5=
 
-rules <- apriori(evalm, parameter = list(supp = 0.12, conf = 0.5))
-
+rules <- apriori(evalm, parameter = list(supp = 0.1, conf = 0.5))
 
 options(digits=2)
 
+inspect(rules[1:5])
 summary(rules)
-
+### we can sort the rules by confidence to see which one has more chances to hold 
+sortedrules<-sort(rules, by="confidence", decreasing=TRUE)
+inspect(sortedrules)
 ##########plot rules 
 
 win.graph(800,600,10)    # plot the rules 
@@ -196,7 +198,7 @@ head(quality(rules))
 win.graph(800,600,10)    ## if we want to see the rules with strong lift
 plot(rules, measure = "support", shading = "lift")
 
-plot(rules, measure=c("support", "lift"), shading="confidence")
+plot(rules, measure=c("support", "lift"), shading="confidence")  
 
 
 ########################matrix ########################################
@@ -204,43 +206,32 @@ subrules <- rules[quality(rules)$confidence > 0.7] ## filter the rules with conf
 subrules ## shpw the rules 
 
 ################### 2D matrix with shading
-plot(subrules, method="matrix", measure="lift")
-plot(subrules, method="matrix", measure="lift", control=list(reorder=TRUE))
+#plot(subrules, method="matrix", measure="lift")
+#plot(subrules, method="matrix", measure="lift", control=list(reorder=TRUE))
+######################Grouped matrix
+win.graph(800,600,10)
+plot(rules, method="grouped")
+win.graph(800,600,10)
+plot(subrules, method="grouped",cex=10)
+subrules2 <- head(sort(rules, by="lift"), 10)
+win.graph(800,600,10)
+plot(subrules2, method="grouped")#,cex=1.5,cex.lab=1.5,cex.axis=1.5,cex.sub=1.5,cex.main=1.5)
+plot(subrules2, method="grouped",control = list(col = grey.colors(16),
+                    gp_labels= gpar(col = "blue", cex=1.5, fontface="italic")))
+#######graph based rules      
+## this kind of plot works good only with small number of rules so that why I chossed the top 10
+subrules2 <- head(sort(rules, by="lift"), 10)## sort rules by lift and take the top 10 
+inspect(subrules2)
 
-
-
-#######graph based rules        
-subrules2 <- head(sort(rules, by="lift"), 20)  ## sort rules by lift and take the top 20 
-plot(subrules2, method="graph")
 win.graph(800,600,10)
 plot(subrules2, method="graph", control=list(type="itemsets"))
 
-#saveAsGraph(head(sort(rules, by="lift"),1000), file="rules.graphml")
-
-
-
-
-###############################ecalt######################################
-## for itemsets
-ruleseclat <- eclat(evalm, parameter = list(support = 0.02))
-plot(ruleseclat)
-
-plot(ruleseclat, measure = "support")
 
 
 
 
 
-
-
-
-win.graph(800,600,10)
-plot(itemsets, method="paracoord", control=list(alpha=.5, reorder=TRUE))
-win.graph(800,600,10)
-plot(itemsets, method="graph")
-
-
-#subruleseclat <- head(sort(ruleseclat, by="lift"), 20)  ## sort rules by lift and take the top 20 
+ 
 
 
 
